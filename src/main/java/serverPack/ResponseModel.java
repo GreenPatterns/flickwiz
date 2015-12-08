@@ -5,28 +5,46 @@ import java.util.LinkedList;
 
 public class ResponseModel {
 
-	private LinkedList<URL> bestOptionsList;
-	private LinkedList<String> movieNames;
-
-	public ResponseModel(LinkedList<String> names, LinkedList<URL> bestOptions) {
-		this.bestOptionsList = bestOptions;
-		this.movieNames = names;
+	
+	private LinkedList<String> names;
+	private LinkedList<URL> urls;
+	private LinkedList<LinkedList<String>> IMDBDetials;
+	
+	public ResponseModel(LinkedList<String> names, LinkedList<URL> urls, LinkedList<LinkedList<String>> iMDBDetials) {
+		super();
+		this.names = names;
+		this.urls = urls;
+		IMDBDetials = iMDBDetials;
 	}
 
-	public LinkedList<URL> getBestOptionsList() {
-		return bestOptionsList;
+
+	public LinkedList<LinkedList<String>> getIMDBDetials() {
+		return IMDBDetials;
 	}
 
-	public void setBestOptionsList(LinkedList<URL> bestOptionsList) {
-		this.bestOptionsList = bestOptionsList;
+
+	public void setIMDBDetials(LinkedList<LinkedList<String>> iMDBDetials) {
+		IMDBDetials = iMDBDetials;
 	}
 
-	public LinkedList<String> getMovieNames() {
-		return movieNames;
+
+	public LinkedList<String> getNames() {
+		return names;
 	}
 
-	public void setMovieNames(LinkedList<String> movieNames) {
-		this.movieNames = movieNames;
+	public void setNames(LinkedList<String> names) {
+		this.names = names;
 	}
+
+	public LinkedList<URL> getUrls() {
+		return urls;
+	}
+
+	public void setUrls(LinkedList<URL> urls) {
+		this.urls = urls;
+	}
+
+
+	
 
 }
