@@ -21,6 +21,7 @@ import org.opencv.features2d.DMatch;
 import org.opencv.features2d.DescriptorMatcher;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -52,7 +53,7 @@ public class MyRestService {
 	private Mat trainDescriptor;
 	private MatOfDMatch matches;
 
-	@RequestMapping(value = "/upload")
+	@RequestMapping(value = "/upload", method=RequestMethod.POST)
 	public @ResponseBody ResponseModel uploadFile(@RequestParam("uploadedFile") MultipartFile uploadedFileRef) {
 
 		Loader.init();
@@ -102,10 +103,6 @@ public class MyRestService {
 				similarIndices.add(new SimilarityIndex(simIndex, posterUrls.get(i), posterNames.get(i)));
 			}
 			
-			for (int i = 0; i < posters_TrainDescriptors.size(); i++) {
-				SimilarityIndex simIndex = similarIndices.get(i);
-				System.out.println(simIndex.getIndex()+" , "+simIndex.getUrl()+" , "+simIndex.getName());
-			}
 			
 			/////////sorting/////////////
 			Comparator<SimilarityIndex> indexComparator = new Comparator<SimilarityIndex>() {
@@ -164,7 +161,7 @@ public class MyRestService {
 	}
 
 	
-	@RequestMapping(value = "/calcallfeatures")
+	@RequestMapping(value = "/calcallfeatures", method=RequestMethod.GET)
 	public @ResponseBody String allFeaturesExtraction() throws IOException{
 		int counter = 0;
 		Loader.init();
@@ -199,4 +196,8 @@ public class MyRestService {
 //		return null;
 	}
 	
+	@RequestMapping(value = "/test", method=RequestMethod.POST)
+    public @ResponseBody String test(@RequestParam("name") String name) {
+		return " Hello I'm poster recognition server, "+name+" has requested me....!!!";
+	}
 }
