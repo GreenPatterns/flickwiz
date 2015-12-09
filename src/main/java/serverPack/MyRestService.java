@@ -23,6 +23,7 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
@@ -196,8 +197,13 @@ public class MyRestService {
 //		return null;
 	}
 	
-	@RequestMapping(value = "/test", method=RequestMethod.POST)
-    public @ResponseBody String test(@RequestParam("name") String name) {
-		return " Hello I'm poster recognition server, "+name+" has requested me....!!!";
+	@RequestMapping(value = "/requestparam", method=RequestMethod.POST)
+    public @ResponseBody String test1(@RequestParam("name") String name) {
+		return " REQUEST PARAM :Hello I'm poster recognition server, "+name+" has requested me....!!!";
+	}
+	
+	@RequestMapping(value = "/requestpart", method=RequestMethod.POST)
+    public @ResponseBody String test2(@RequestPart("name") String name) {
+		return " REQUEST PART: Hello I'm poster recognition server, "+name+" has requested me....!!!";
 	}
 }
