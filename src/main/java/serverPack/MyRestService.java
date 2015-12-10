@@ -1,5 +1,7 @@
 package serverPack;
 
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -20,13 +22,11 @@ import org.opencv.core.MatOfDMatch;
 import org.opencv.features2d.DMatch;
 import org.opencv.features2d.DescriptorMatcher;
 import org.springframework.context.annotation.ComponentScan;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.multipart.MultipartFile;
 
 import serverPack.coreclassess.Converter;
 import serverPack.coreclassess.FeaturesORB;
@@ -54,7 +54,9 @@ public class MyRestService {
 	private Mat trainDescriptor;
 	private MatOfDMatch matches;
 
-	@RequestMapping(value = "/upload", method=RequestMethod.POST)
+	/////////////////////////////// [START] FOR MULTIPART FORM DATA... IF REQUIRED ////////////////////////////////
+	
+/*	@RequestMapping(value = "/upload", method=RequestMethod.POST)
 	public @ResponseBody ResponseModel uploadFile(@RequestParam("uploadedFile") MultipartFile uploadedFileRef) {
 
 		Loader.init();
@@ -134,7 +136,102 @@ public class MyRestService {
 			e.printStackTrace();
 		}
 		return new ResponseModel(bestNames, bestURLS, IMDBDetials);
-	}
+	}*/
+	
+/////////////////////////////// [STOP] FOR MULTIPART FORM DATA... IF REQUIRED ////////////////////////////////
+	
+	
+	
+/////////////////////////////// [SART] FOR IPhone ////////////////////////////////	
+	
+	@RequestMapping(value = "/uploadme", method=RequestMethod.POST)
+    public @ResponseBody ResponseModel uploadObject4(@RequestBody FlickwizImage fi) {
+        System.out.println("Request Received on path /uploadme");
+        System.out.println(fi);
+        Loader.init();
+		
+		FeaturesORB orb = new FeaturesORB();
+		queryDescriptor = new Mat();
+		matches = new MatOfDMatch();
+		List<SimilarityIndex> similarIndices = new ArrayList<SimilarityIndex>();
+		
+        try{
+            byte[] imageBytes = javax.xml.bind.DatatypeConverter.parseBase64Binary(fi.getBase64Code());
+            BufferedImage img = ImageIO.read(new ByteArrayInputStream(imageBytes));
+           
+            
+			descriptorMatcher = DescriptorMatcher.create(DescriptorMatcher.BRUTEFORCE_HAMMING);
+			queryDescriptor = orb.getORBFeaturesDescriptorMat(Converter.img2Mat(img));
+
+			for (int i = 0; i < posters_TrainDescriptors.size(); i++) {
+				descriptorMatcher.clear();			
+				trainDescriptor = posters_TrainDescriptors.get(i);				
+				descriptorMatcher.match(queryDescriptor, trainDescriptor, matches);
+
+				List<DMatch> matchesList = matches.toList();
+
+				Double max_dist = 0.0;
+				Double min_dist = 100.0;
+
+				for (int j = 0; j < queryDescriptor.rows(); j++) {
+					Double dist = (double) matchesList.get(j).distance;
+					if (dist < min_dist)
+						min_dist = dist;
+					if (dist > max_dist)
+						max_dist = dist;
+				}
+
+				// -- Draw only "good" matches
+				
+				LinkedList<DMatch> good_matches = new LinkedList<>();
+				double goodMatchesSum = 0.0;
+
+				// good match = distance > 2*min_distance ==> put them in a list
+				for (int k = 0; k < queryDescriptor.rows(); k++) {
+					if (matchesList.get(k).distance < Math.max(2 * min_dist,0.02)) {
+						good_matches.addLast(matchesList.get(k));
+						goodMatchesSum += matchesList.get(k).distance;
+					}
+				}
+
+				double simIndex = (double) goodMatchesSum/ (double) good_matches.size();
+				similarIndices.add(new SimilarityIndex(simIndex, posterUrls.get(i), posterNames.get(i)));
+			}
+			
+			
+			/////////sorting/////////////
+			Comparator<SimilarityIndex> indexComparator = new Comparator<SimilarityIndex>() {
+			    public int compare(SimilarityIndex index1, SimilarityIndex index2) {
+			        return index1.getIndex().compareTo(index2.getIndex());
+			    }
+			};
+			
+			Collections.sort(similarIndices, indexComparator);
+			///////ending/////////////
+					
+			
+			////////////BestOptions adding////////////
+			
+			bestURLS.clear();
+			bestNames.clear();
+			IMDBDetials.clear();
+			for(int i=0; i<5 ; i++)
+			{
+				bestNames.add(i, similarIndices.get(i).getName());
+				bestURLS.add(i, similarIndices.get(i).getUrl());
+				IMDBDetials.add(i, getImdbData(similarIndices.get(i).getName()));				
+			}
+			
+			////////////////end best option getting///////////
+            
+        }catch(Exception ex){
+            System.out.println("Base64Code to bufferedImage conversion exception");
+            System.out.println(ex.getMessage());
+        }
+        return new ResponseModel(bestNames, bestURLS, IMDBDetials);
+    }
+	
+////////////////////////////////////// [END] FOR IPhone ////////////////////////////////	
 	
 	private LinkedList<String> getImdbData(String movie)
 	{
@@ -194,16 +291,6 @@ public class MyRestService {
 		}
 		reader.close();
 		return "Features extracted from all posters and stored successfully:"+posters_TrainDescriptors.size();
-//		return null;
 	}
 	
-	@RequestMapping(value = "/requestparam", method=RequestMethod.POST)
-    public @ResponseBody String test1(@RequestParam("name") String name) {
-		return " REQUEST PARAM :Hello I'm poster recognition server, "+name+" has requested me....!!!";
-	}
-	
-	@RequestMapping(value = "/requestpart", method=RequestMethod.POST)
-    public @ResponseBody String test2(@RequestPart("name") String name) {
-		return " REQUEST PART: Hello I'm poster recognition server, "+name+" has requested me....!!!";
-	}
 }
